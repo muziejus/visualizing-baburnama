@@ -1,188 +1,86 @@
-// jQuery available as $
-// Leaflet available as L
-// Turf available as turf
-// Markdown-it available as markdownit
-// d3 available as d3
+/* global L, data */
+const main = async () => {
+  const map = L.map("mapdiv", { zoomControl: false });
+  const newDelhi = L.latLng([28.613889, 77.208889]);
+  const zoomLevel = 8;
 
-// Some features in this demo rely on a local webserver for them to work on
-// your computer. Luckily, it's not very hard to do with python.
-//
-// In the terminal, cd into the directory in which this file rests and run:
-//
-// python3 -m http:server 8888
-//
-// or, if you don't have python 3:
-//
-// python -m SimpleHTTPServer 8888
-//
-// Now, point your browser to http://localhost:8888/
-//
-// If you have Windows, use "py" instead of "python3."
+  const colors = [
+    "#1f77b4",
+    "#ff7f0e",
+    "#2ca02c",
+    "#d62728",
+    "#9467bd",
+    "#8c564b",
+    "#e377c2",
+    "#7f7f7f",
+    "#bcbd22",
+    "#17becf"
+  ];
 
-// Intialize the map as the variable "map"
-// This also hides the + / - zoom controls.
-// const map = L.map("mapdiv", { zoomControl: false });
-
-// Set a center point and zoom level for it:
-// const vingtNeufRueDUlm = L.latLng([48.843495, 2.344888]);
-// const zoomLevel = 17;
-
-// Now set the view of the map and add a tile layer:
-// map.setView(vingtNeufRueDUlm, zoomLevel);
-// L.tileLayer.provider("Stamen.Watercolor").addTo(map);
-
-// If you prefer a different tile layer, see your options here:
-// https://leaflet-extras.github.io/leaflet-providers/preview/
-// Note that some may require registration. Then, where above we have
-// "Stamen.Watercolor," paste in your chosen tiles, like
-// "OpenStreetMap.Mapnik" or "Stamen.Toner"
-
-// Add a marker for where we're at:
-// const vingtNeufMarker = L.marker(vingtNeufRueDUlm).addTo(map);
-
-// Now add a popup to it:
-// vingtNeufMarker.bindPopup("<h3>Hello from 29 rue d’Ulm!</h3>");
-
-// Use Markdown, instead:
-// const md = markdownit({html: true}).use(markdownitFootnote);
-// vingtNeufMarker.bindPopup(md.render("### Hello from 29 rue d’Ulm and the [NYU/PSL Workshop](https://wp.nyu.edu/nyupslgeo/workshop/)!"));
-
-// Use d3 to parse the places.csv csv file.
-//
-// d3.csv() takes three attributes. First is the url to the csv file, which is
-// just "places.csv" because the file is in the same folder as this file. The
-// second function allows us to manipulate the data a bit, so we create an
-// object out of it. Most importantly, we turn the latitude and longitude into
-// numbers.
-//
-// That gives us a new object that we call "list." It's not an Array, but it
-// behaves somewhat like one. The last member, however, is the header row.
-
-/*
-d3.csv("places.csv", data => {
-  return {
-    nom: data.nom,
-    latitude: +data.latitude,
-    longitude: +data.longitude,
-    type: data.type,
-    lien: data.lien
-  };
-}, list => {
-  // iterate over the list object
-  list.forEach(place => {
-    // We need to make sure that we ignore the object that only holds the headers.
-    if(place.latitude){
-      // We change the color and icon (see below) based on the value of the
-      // "type" property.
-      let color;
-      let icon;
-      switch (place.type) {
-      case "batuniv":
-        color = "#cc0000";
-        icon = "graduation-cap";
-        break;
-      case "restmex":
-        color = "#00cc00";
-        icon = "utensils";
-        break;
-      case "librairie":
-        color = "#0000cc";
-        icon = "book";
-        break;
-      }
-      // And then we use the other properties to make add a circle marker to the map.
-      L.circleMarker([place.latitude, place.longitude],
-        { fillColor: color, color: color }
-      ).bindPopup(`<h3><a href="${place.lien}">${place.nom}</a></h3>`).addTo(map);
-      // Alternatively, we can use icons from font-awesome.
-      // L.marker([place.latitude, place.longitude],
-      //   { icon: L.divIcon(
-      //     { html: `<i style="color: ${color}" class="fa fa-${icon}"></i>`, iconSize: [30, 30] }
-      //   )}
-      // ).bindTooltip(place.nom).addTo(map);
+  map.setView(newDelhi, zoomLevel);
+  const physicalTileLayer = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}",
+    {
+      attribution:
+        "Tiles &copy; Esri &mdash; Source: US National Park Service",
+      maxZoom: 8
     }
-  });
-});
-*/
+  ).addTo(map);
 
-// Alternatively, we can contact a server and ask data from it.
-//
-// Pull in the Vélib station dataset ParisData provides
-// const velibStationUrl = "https://opendata.paris.fr/api/records/1.0/search/?dataset=velib-emplacement-des-stations&rows=68";
-
-// Shift into async mode and put it on the map:
-
-/*
-
-$.getJSON(velibStationUrl, stationData => {
-  // Create a layer group for the stations
-  const velibStationsLayer = L.layerGroup();
-
-  // stationData has an array inside of it called "records" that
-  // holds each station's data. Within each record, there's a "fields"
-  // object that has three fields we're interested in: "name," "lat,"
-  // and "lon."
-
-  // iterate over the records array
-  stationData.records.forEach( record => {
-    // build an L.circleMarker to add to the velibStationMarkers array.
-    const velibCircle = L.circleMarker([record.fields.lat, record.fields.lon], {
-      radius: 15,
-      color: "#eeeeee", // outline or stroke color
-      weight: 2, // outline or stroke width
-      fillColor: "#666666",
-      fillOpacity: 0.5
-    }).bindPopup(`<h3>${record.fields.name}</h3>`);
-    velibStationsLayer.addLayer(velibCircle);
-  });
-  // And add it to the map
-  velibStationsLayer.addTo(map);
-
-  // Now convert the layer to GeoJSON so we can work on it with Turf.
-  const velibStationsGeoJSON = velibStationsLayer.toGeoJSON();
-  // In turf, let's buffer the points and then dissolve them together
-  const bufferedStations = turf.dissolve(
-    turf.buffer(
-      velibStationsGeoJSON, 400, { units: "meters" }
-    )
+  const politicalTileLayer = L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      minZoom: 1,
+      maxZoom: 19,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }
   );
-  L.geoJSON(bufferedStations, {
-    style() {
-      return {
-        color: "#ff0000",
-        weight: 5,
-        fillOpacity: 0.0
+
+  const baseLayers = {
+    "Esri Physical": physicalTileLayer,
+    "OpenStreetMap": politicalTileLayer
+  };
+
+  const visualizationLayers = {};
+
+  const placesArray = data.places;
+  const { entries } = data.babur;
+  const properties = data.babur.entryProperties;
+
+  for (const place of placesArray) {
+    place.entries = entries.filter(e => e.place === place.id);
+  }
+
+  properties.forEach( (property, i) => {
+    const propEntries = entries.filter(e => e.properties[property.name] && e.properties[property.name] !== "");
+    const points = [];
+    [...new Set(propEntries.map(e => e.place))].forEach( placeId => {
+      const dataPlace = data.places.filter(p => p.id === placeId)[0];
+      const place = {
+        latitude: dataPlace.latitude,
+        longitude: dataPlace.longitude,
+        name: dataPlace.name,
+        attestedNames: [...new Set(propEntries.filter(e => e.place === placeId).map(e => e.attestedName))],
+        count: propEntries.filter(e => e.place === placeId).length
       };
-    }
-  }).addTo(map);
-}); // close $.getJSON()
+      if (place.latitude && place.longitude) {
+        points.push(
+          L.circleMarker([place.latitude, place.longitude], {
+            color: colors[i % 10],
+            fillColor: colors[i % 10],
+            radius: 3 + Math.sqrt(place.count)
+          }).bindPopup(`<h3>${place.name}</h3><p>${place.attestedNames.join(", ")}</p>`)
+        );
+      }
+    });
+    const layerName = `${property.owner} - ${property.inputLabel}`;
+    visualizationLayers[layerName] = L.layerGroup(points);
+  });
 
-*/
+  console.log(properties);
 
-// Or, we can use $.getJSON() on our own file of the Parisian Arrondisements.
+  L.control.layers(baseLayers, visualizationLayers).addTo(map);
+}
 
-/*
-$.getJSON("paris_arr.geojson", geodata => {
-  L.geoJSON(geodata, {
-    style() {
-      return {
-        color: "#ff0000",
-        weight: 5,
-        fillOpacity: 0.0
-      };
-    }
-  }).addTo(map);
-});
-*/
-
-// Use jQuery to manipulate the html elements.
-// Change the card header:
-// $("#card-header-text").html("<strong>Workshop à rue d’Ulm</strong>");
-
-// Change the card body to the body.md file: 
-
-// $.ajax({ url: "body.md",
-//   success(bodyMarkdown) {
-//     $("#outlet-card-body").html(md.render(bodyMarkdown)); 
-//   } 
-// });
+main();
